@@ -10,11 +10,13 @@ class SectionConstraint:
     name: str
     best_times: list[int]
     weeks: int
+    banned_neighbours: set[str]
 
-    def __init__(self, name: str, best_times: list[str], number_of_weeks_to_travel: int):
+    def __init__(self, name: str, best_times: list[str], number_of_weeks_to_travel: int, banned_neighbours: set[str]):
         self.name = name
         self.best_times = self._parse_times(best_times)
         self.weeks = number_of_weeks_to_travel
+        self.banned_neighbours = banned_neighbours
 
     def _parse_times(self, best_times: list[str]) -> list[int]:
         week_numbers = []
@@ -34,6 +36,7 @@ class SectionModel:
     start: IntVar
     interval: IntervalVar
     end: IntVar
+    banned_neighbours: set[str]
 
 
 @dataclasses.dataclass()
@@ -43,7 +46,21 @@ class SectionResult:
     end_week: int
 
     def __str__(self):
-        return f"{self.section_name}: week {self.start_week} to {self.end_week}"
+        formatted_name = f"{self.section_name} "
+        return f"{self.section_name:<25} {self.end_week - self.start_week:<2} weeks: {week_to_month_week(self.start_week)} to {week_to_month_week(self.end_week)}"
+
+
+from datetime import datetime
+
+
+def week_to_month_week(week_number):
+    if week_number > 52:
+        week_number = week_number % 52
+    d = datetime.fromisocalendar(2022, week_number, 1)  # ISO weeks start from Monday.
+    month_name = d.strftime('%B')  # get month's name, i.e. 'January'
+    start_of_the_month = d.replace(day=1)  # get the first day of the month
+    week_of_month = (d - start_of_the_month).days // 7 + 1  # calculate the week of the month
+    return f'{month_name}-{week_of_month}'
 
 
 WEEKS_2023_2024 = {
@@ -83,7 +100,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
             out.write(f"\nSolution: {self._solution_count}\n")
 
             for sr in sorted(section_results, key=lambda r: r.start_week):
-                out.write(str(sr) +"\n")
+                out.write(str(sr) + "\n")
 
 
 def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_week: int):
@@ -92,7 +109,7 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     end_week = start_week + total_weeks + 1
 
     # Define the variables
-    all_sections: list[SectionModel] = []
+    all_section_models: list[SectionModel] = []
     for i, section in enumerate(section_constraints):
         # From the start or earliest possible time, whichever is later
         earliest_start = max(start_week, min(section.best_times))
@@ -111,16 +128,26 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
                 model.Add(week_index == time).OnlyEnforceIf(value_var)
             model.AddBoolOr(allowed_values)
 
-        all_sections.append(SectionModel(section.name, section.weeks, start, interval, end))
+        all_section_models.append(SectionModel(section.name, section.weeks, start, interval, end, section.banned_neighbours))
+
+    models_by_name: dict[str, SectionModel] = {model.name: model for model in all_section_models}
 
     # Define the constraints
-    all_intervals = [section.interval for section in all_sections]
+    all_intervals = [section.interval for section in all_section_models]
     model.AddNoOverlap(all_intervals)
-    model.AddCumulative(all_intervals, [section.weeks for section in all_sections], total_weeks)
+    # Ensure that it's contiguous
+    model.AddCumulative(all_intervals, [section.weeks for section in all_section_models], total_weeks)
+
+    for section_model in all_section_models:
+
+        for banned_neighbour in section_model.banned_neighbours:
+            banned_neighbour_model = models_by_name[banned_neighbour]
+            model.Add(section_model.start != banned_neighbour_model.end)
+            model.Add(section_model.end != banned_neighbour_model.start)
 
     solver = cp_model.CpSolver()
     solver.parameters.num_workers = 1
-    solution_printer = SolutionPrinter(all_sections)
+    solution_printer = SolutionPrinter(all_section_models)
     status = solver.SearchForAllSolutions(model, solution_printer)
 
     print("Status = ", status == cp_model.OPTIMAL)
@@ -128,22 +155,37 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Time = ", solver.WallTime(), "seconds")
 
 
+JAPAN = "Japan"
+NZPI = "New Zealand and PI"
+AT = "Appalachian Trail"
+CENTRAL_ASIA = "Central Asia"
+SOUTH_AMERICA = "South America"
+SOUTHEAST_AFRICA = "Southeast Africa"
+CHINA = "China"
+SEA = "Southeast Asia"
+SOUTH_ASIA = "South Asia"
+
+ALL = [JAPAN, NZPI, AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA, SEA, SOUTH_ASIA]
+
 sections = [
-    SectionConstraint("Japan", ["April", "May", "June", "July", "August", "September", "October"], 4),
-    SectionConstraint("New Zealand and PI", ["September", "October", "November", "December", "January", "February", "March", "April"], 6),
+    SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
+    SectionConstraint(NZPI, ["September", "October", "November", "December", "January", "February", "March", "April"], 6,
+                      banned_neighbours=set()),#{AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA}),
     # SectionConstraint("Pacific Islands",
     #                   ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
     #                    "October"], 2),
-    SectionConstraint("Appalachian Trail", ["March", "April", "May", "June", "July", "August"], 4),
-    SectionConstraint("Central Asia", ["May", "June", "July", "August", "September"], 6),
-    SectionConstraint("South America", ["September", "October", "November", "December", "January", "February", "March", "April", "May"], 9),
-    SectionConstraint("Southeast Africa",
-                      ["July", "August", "September", "October", "November", "December", "January", "February", "March"], 10),
-    SectionConstraint("China", ["April", "May", "June", "July", "August", "September", "October"], 2),
-    SectionConstraint("Southeast Asia",
+    SectionConstraint(AT, ["March", "April", "May", "June", "July", "August"], 4, banned_neighbours=set()),
+    SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 6, banned_neighbours=set()),
+    SectionConstraint(SOUTH_AMERICA, ["September", "October", "November", "December", "January", "February", "March", "April", "May"], 9,
+                      banned_neighbours=set()),
+    SectionConstraint(SOUTHEAST_AFRICA,
+                      ["July", "August", "September", "October", "November", "December", "January", "February", "March"], 10,
+                      banned_neighbours=set()),
+    SectionConstraint(CHINA, ["April", "May", "June", "July", "August", "September", "October"], 2, banned_neighbours=set()),
+    SectionConstraint(SEA,
                       ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
-                       "October"], 4),
-    SectionConstraint("South Asia", ["November", "December", "January", "February", "March", "April", "May"], 4)
+                       "October"], 4, banned_neighbours=set()),
+    SectionConstraint(SOUTH_ASIA, ["November", "December", "January", "February", "March", "April", "May"], 4, banned_neighbours=set())
 ]
 
 print(f"{len(sections)} sections totalling {count_weeks(sections)} weeks")
