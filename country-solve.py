@@ -130,7 +130,10 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
 
 sections = [
     SectionConstraint("Japan", ["April", "May", "June", "July", "August", "September", "October"], 4),
-    SectionConstraint("New Zealand", ["September", "October", "November", "December", "January", "February", "March", "April"], 4),
+    SectionConstraint("New Zealand and PI", ["September", "October", "November", "December", "January", "February", "March", "April"], 6),
+    # SectionConstraint("Pacific Islands",
+    #                   ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
+    #                    "October"], 2),
     SectionConstraint("Appalachian Trail", ["March", "April", "May", "June", "July", "August"], 4),
     SectionConstraint("Central Asia", ["May", "June", "July", "August", "September"], 6),
     SectionConstraint("South America", ["September", "October", "November", "December", "January", "February", "March", "April", "May"], 9),
@@ -140,9 +143,6 @@ sections = [
     SectionConstraint("Southeast Asia",
                       ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
                        "October"], 4),
-    SectionConstraint("Pacific Islands",
-                      ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
-                       "October"], 2),
     SectionConstraint("South Asia", ["November", "December", "January", "February", "March", "April", "May"], 4)
 ]
 
