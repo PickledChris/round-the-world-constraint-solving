@@ -103,6 +103,14 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
         end = model.NewIntVar(earliest_start + section.weeks, latest_end, f"{section.name} end")
         interval = model.NewIntervalVar(start, section.weeks, end, f"{section.name} interval")
 
+        # Ensure that all weeks within the range are valid
+        for w in range(section.weeks):
+            week_index = start + w
+            allowed_values = [model.NewBoolVar('') for _ in section.best_times]
+            for value_var, time in zip(allowed_values, section.best_times):
+                model.Add(week_index == time).OnlyEnforceIf(value_var)
+            model.AddBoolOr(allowed_values)
+
         all_sections.append(SectionModel(section.name, section.weeks, start, interval, end))
 
     # Define the constraints
