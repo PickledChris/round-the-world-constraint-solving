@@ -40,7 +40,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
         first_day = get_day_index_of_year(date_start)
         section_count = len(self._section_models)
 
-        fig, axs = plt.subplots(section_count // 2 + 1, 2, figsize=(20, 33))  # Create N subplots in 1 column
+        fig, axs = plt.subplots(round(section_count // 2), 2, figsize=(20, 33))  # Create N subplots in 1 column
         fig.suptitle(f"{self._solution_count} solutions, {section_count} sections, {total_weeks} weeks")
 
         def add_plot(data, index, model):

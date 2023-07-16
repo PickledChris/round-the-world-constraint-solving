@@ -1,4 +1,3 @@
-
 from ortools.sat.python import cp_model
 
 from model import SectionModel, SectionConstraint
@@ -34,7 +33,8 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
                 model.Add(week_index == time).OnlyEnforceIf(value_var)
             model.AddBoolOr(allowed_values)
 
-        all_section_models.append(SectionModel(section.name, section.weeks, start, interval, end, section.banned_neighbours))
+        all_section_models.append(
+            SectionModel(section.name, section.weeks, start, interval, end, section.required_neighbours, section.banned_neighbours))
 
     models_by_name: dict[str, SectionModel] = {model.name: model for model in all_section_models}
 
@@ -44,7 +44,18 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     # Ensure that it's contiguous
     model.AddCumulative(all_intervals, [section.weeks for section in all_section_models], total_weeks)
 
-    # Prevent neighbours that have been blocklisted
+    # Require neighbours that have been explicitly required
+    for section_model in all_section_models:
+        for required_neighbour in section_model.required_neighbours:
+            required_neighbour_model = models_by_name[required_neighbour]
+            # A required neighbour should be before or after
+            is_after = model.NewBoolVar('is_after')
+            is_before = model.NewBoolVar('is_before')
+            model.Add(section_model.start == required_neighbour_model.end).OnlyEnforceIf(is_after)
+            model.Add(section_model.end == required_neighbour_model.start).OnlyEnforceIf(is_before)
+            model.AddBoolOr([is_before, is_after])
+
+    # Ban neighbours that have been blocklisted
     for section_model in all_section_models:
         for banned_neighbour in section_model.banned_neighbours:
             banned_neighbour_model = models_by_name[banned_neighbour]
@@ -60,6 +71,3 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Solutions found : %i" % solution_printer._solution_count)
     print("Time = ", solver.WallTime(), "seconds")
     solution_printer.generate_visualisations(section_constraints, total_weeks=total_weeks)
-
-
-

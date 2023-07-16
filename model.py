@@ -11,6 +11,7 @@ class SectionModel:
     start: IntVar
     interval: IntervalVar
     end: IntVar
+    required_neighbours: set[str]
     banned_neighbours: set[str]
 
 
@@ -31,13 +32,16 @@ class SectionConstraint:
     best_months: list[str]
     best_times: list[int]
     weeks: int
+    required_neighbours: set[str]
     banned_neighbours: set[str]
 
-    def __init__(self, name: str, best_months: list[str], number_of_weeks_to_travel: int, banned_neighbours: set[str]):
+    def __init__(self, name: str, best_months: list[str], number_of_weeks_to_travel: int, required_neighbours: set[str]= frozenset([]),
+                 banned_neighbours: set[str]= frozenset([])):
         self.name = name
         self.best_months = best_months
         self.best_times = self._parse_times(best_months)
         self.weeks = number_of_weeks_to_travel
+        self.required_neighbours = required_neighbours
         self.banned_neighbours = banned_neighbours
 
     def _parse_times(self, best_times: list[str]) -> list[int]:
@@ -51,8 +55,10 @@ class SectionConstraint:
         return sorted(week_numbers)
 
     def __str__(self):
-        neighbours = f"and not adjacent to {self.banned_neighbours}" if self.banned_neighbours else ""
-        return f"{self.name}: Only in {self.best_months} {neighbours}"
+        required_neighbours = f", must be adjacent to {self.required_neighbours}" if self.required_neighbours else ""
+        banned_neighbours = f"and not adjacent to {self.banned_neighbours}" if self.banned_neighbours else ""
+        return f"{self.name}: Only in {self.best_months} {required_neighbours} {banned_neighbours}"
+
 
 @dataclasses.dataclass
 class Solution:
