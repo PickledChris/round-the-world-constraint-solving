@@ -61,7 +61,7 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Status = ", status == cp_model.OPTIMAL)
     print("Solutions found : %i" % solution_printer._solution_count)
     print("Time = ", solver.WallTime(), "seconds")
-    solution_printer.generate_visualisations(total_weeks=total_weeks)
+    solution_printer.generate_visualisations(section_constraints, total_weeks=total_weeks)
 
 
 AFRICA = "Southeast Africa"

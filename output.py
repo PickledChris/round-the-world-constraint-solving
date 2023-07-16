@@ -6,7 +6,8 @@ import matplotlib.pyplot as plt
 import pandas as pd
 from ortools.sat.python import cp_model
 
-from model import SectionModel, SectionResult, Solution
+from model import SectionModel, SectionResult, Solution, SectionConstraint
+from textwrap import wrap
 
 
 class SolutionPrinter(cp_model.CpSolverSolutionCallback):
@@ -35,35 +36,35 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
 
             self._solutions.append(Solution(sorted_results))
 
-    def generate_visualisations(self, date_start="2023-11-01", total_weeks: int = 52):
+    def generate_visualisations(self, section_constraints: list[SectionConstraint], total_weeks: int = 52, date_start="2023-11-01"):
         first_day = get_day_index_of_year(date_start)
         section_count = len(self._section_models)
 
-        fig, axs = plt.subplots(section_count // 2 + 1, 2, figsize=(9, 27))  # Create N subplots in 1 column
-        fig.suptitle(f"{self._solution_count} solutions, {section_count} sections, ")
+        fig, axs = plt.subplots(section_count // 2 + 1, 2, figsize=(20, 33))  # Create N subplots in 1 column
+        fig.suptitle(f"{self._solution_count} solutions, {section_count} sections, {total_weeks} weeks")
 
-        def add_plot(data, index, name):
+        def add_plot(data, index, model):
             ax1 = july.heatmap(data.days, data.section_count, cmap="Purples", ax=axs[index // 2, index % 2])
-            ax1.set_title(name)
+            ax1.set_title(f"{model.name}: {model.weeks} weeks")
+            sc = [sc for sc in section_constraints if sc.name == model.name]
+            ax1.set_xlabel("\n".join(wrap(str(sc[0]).removeprefix(model.name + ": "), 80)))
 
         for i, model in enumerate(self._section_models):
 
-            all_weeks = [section_result for solution in self._solutions for section_result in solution.section_results if
-                         section_result.section_name == model.name]
+            all_section_results = [section_result for solution in self._solutions for section_result in solution.section_results if
+                                   section_result.section_name == model.name]
 
             day_buffer = 60
             df = pd.DataFrame({'days': pd.date_range(date_start, periods=total_weeks * 7 + day_buffer, freq='D'), 'section_count': 0})
             # For each SectionResult in all_weeks set corresponding days to 1
-            for section_result in all_weeks:
-                start_day, end_day = week_to_day_range(section_result.start_week, section_result.end_week, first_day)
+            for section_result in all_section_results:
+                start_day, end_day = week_to_day_range(section_result.start_week, section_result.start_week, first_day)
                 df.loc[start_day - 1:end_day - 1, 'section_count'] += 1  # Accounting for zero-based indexing
 
-            # data = np.random.randint(0, 14, len(time_range))
-            add_plot(df, i, model.name)
+            add_plot(df, i, model)
 
         if section_count % 2 != 0:
             axs[section_count // 2, 1].axis('off')
-
 
         plt.tight_layout()
 

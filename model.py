@@ -28,13 +28,15 @@ class SectionResult:
 @dataclasses.dataclass
 class SectionConstraint:
     name: str
+    best_months: list[str]
     best_times: list[int]
     weeks: int
     banned_neighbours: set[str]
 
-    def __init__(self, name: str, best_times: list[str], number_of_weeks_to_travel: int, banned_neighbours: set[str]):
+    def __init__(self, name: str, best_months: list[str], number_of_weeks_to_travel: int, banned_neighbours: set[str]):
         self.name = name
-        self.best_times = self._parse_times(best_times)
+        self.best_months = best_months
+        self.best_times = self._parse_times(best_months)
         self.weeks = number_of_weeks_to_travel
         self.banned_neighbours = banned_neighbours
 
@@ -48,6 +50,9 @@ class SectionConstraint:
 
         return sorted(week_numbers)
 
+    def __str__(self):
+        neighbours = f"and not adjacent to {self.banned_neighbours}" if self.banned_neighbours else ""
+        return f"{self.name}: Only in {self.best_months} {neighbours}"
 
 @dataclasses.dataclass
 class Solution:
