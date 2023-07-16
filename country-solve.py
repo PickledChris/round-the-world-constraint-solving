@@ -175,7 +175,7 @@ ALL = [JAPAN, NZPI, AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA, SE
 sections = [
     SectionConstraint(AT, ["March", "April", "May", "June", "July", "August"], 5, banned_neighbours=set()),
     SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 8, banned_neighbours=set()),
-    SectionConstraint(CHINA, ["April", "May", "June", "July", "August", "September", "October"], 2, banned_neighbours=set()),
+    SectionConstraint(CHINA, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
     SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
     SectionConstraint(NZPI, ["January", "February", "March", "April", "September", "October", "November", "December"], 6,
                       banned_neighbours=set()),
@@ -188,7 +188,7 @@ sections = [
     SectionConstraint(SEA,
                       ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
                        "December"]
-                      , 4, banned_neighbours=set()),
+                      , 6, banned_neighbours=set()),
 ]
 
 print(f"{len(sections)} sections totalling {count_weeks(sections)} weeks")
