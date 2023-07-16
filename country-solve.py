@@ -106,7 +106,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
 def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_week: int):
     model = cp_model.CpModel()
     total_weeks = count_weeks(section_constraints)
-    end_week = start_week + total_weeks + 1
+    end_week = start_week + total_weeks
 
     # Define the variables
     all_section_models: list[SectionModel] = []
@@ -170,14 +170,11 @@ ALL = [JAPAN, NZPI, AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA, SE
 sections = [
     SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
     SectionConstraint(NZPI, ["September", "October", "November", "December", "January", "February", "March", "April"], 6,
-                      banned_neighbours=set()),#{AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA}),
-    # SectionConstraint("Pacific Islands",
-    #                   ["November", "December", "January", "February", "March", "April", "May", "June", "July", "August", "September",
-    #                    "October"], 2),
+                      banned_neighbours=set()),
     SectionConstraint(AT, ["March", "April", "May", "June", "July", "August"], 4, banned_neighbours=set()),
     SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 6, banned_neighbours=set()),
     SectionConstraint(SOUTH_AMERICA, ["September", "October", "November", "December", "January", "February", "March", "April", "May"], 9,
-                      banned_neighbours=set()),
+                      banned_neighbours={SOUTHEAST_AFRICA, SEA, SOUTH_ASIA, CHINA, NZPI}),
     SectionConstraint(SOUTHEAST_AFRICA,
                       ["July", "August", "September", "October", "November", "December", "January", "February", "March"], 10,
                       banned_neighbours=set()),
