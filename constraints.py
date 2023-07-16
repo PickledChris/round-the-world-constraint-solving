@@ -22,7 +22,7 @@ sections = [
     SectionConstraint(NZ, ["January", "February", "March", "April", "October", "November", "December"], 4,
                       banned_neighbours={SOUTH_AMERICA}),
     SectionConstraint(PI, ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-                           "December"], 2, banned_neighbours={AFRICA, AT, CENTRAL_ASIA, CHINA, NEPAL_AND_INDIA, SOUTH_AMERICA}),
+                           "December"], 2, required_neighbours={NZ}, banned_neighbours={AFRICA, AT, CENTRAL_ASIA, CHINA, NEPAL_AND_INDIA, SOUTH_AMERICA}),
     SectionConstraint(
         NEPAL_AND_INDIA, ["January", "February", "March", "April", "October", "November", "December"], 4
     ),
