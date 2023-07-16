@@ -56,11 +56,16 @@ class SectionResult:
 def week_to_month_week(week_number):
     if week_number > 52:
         week_number = week_number % 52
+        year = "2024"
+    else:
+        year = "2023"
+    if week_number == 0:
+        week_number = 1
     d = datetime.fromisocalendar(2022, week_number, 1)  # ISO weeks start from Monday.
     month_name = d.strftime("%B")  # get month's name, i.e. 'January'
     start_of_the_month = d.replace(day=1)  # get the first day of the month
     week_of_month = (d - start_of_the_month).days // 7 + 1  # calculate the week of the month
-    return f"{month_name}-{week_of_month}"
+    return f"{month_name:<9} {year}, week {week_of_month:<2}"
 
 
 WEEKS_2023_2024 = {
@@ -77,6 +82,11 @@ WEEKS_2023_2024 = {
     "September": [(87, 92)],
     "October": [(92, 96)],
 }
+
+# for month, week_ranges in WEEKS_2023_2024.items():
+#     print(month)
+#     for a, b in week_ranges:
+#         print(f"{week_to_month_week(a)} -> {week_to_month_week(b)}")
 
 
 def count_weeks(sections: list[SectionConstraint]):
@@ -157,7 +167,7 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Time = ", solver.WallTime(), "seconds")
 
 
-AFRICA = "Southeast Africa"
+AFRICA = "Africa"
 AT = "Appalachian Trail"
 CENTRAL_ASIA = "Central Asia"
 CHINA = "China"
