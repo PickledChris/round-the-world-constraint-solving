@@ -176,7 +176,7 @@ sections = [
     SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
     SectionConstraint(NZPI, ["January", "February", "March", "April", "October", "November", "December"], 6, banned_neighbours=set()),
     SectionConstraint(
-        NEPAL_AND_INDIA, ["January", "February", "March", "April", "May", "November", "December"], 4, banned_neighbours=set()
+        NEPAL_AND_INDIA, ["January", "February", "March", "April", "October", "November", "December"], 4, banned_neighbours=set()
     ),
     SectionConstraint(
         SOUTH_AMERICA,
