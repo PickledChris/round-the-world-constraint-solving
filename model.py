@@ -83,9 +83,9 @@ def week_to_month_week(week_number):
 WEEKS_2023_2024 = {
     "November": [(44, 48), (96, 100)],
     "December": [(48, 53), (100, 104)],
-    "January": [(53, 57)],
-    "February": [(57, 61)],
-    "March": [(61, 65)],
+    "January": [(53, 57), (104, 108)],
+    "February": [(57, 61), (108, 112)],
+    "March": [(61, 65), (112, 116)],
     "April": [(65, 70)],
     "May": [(70, 74)],
     "June": [(74, 78)],
