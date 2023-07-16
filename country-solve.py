@@ -46,6 +46,7 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     # Ensure that it's contiguous
     model.AddCumulative(all_intervals, [section.weeks for section in all_section_models], total_weeks)
 
+    # Prevent neighbours that have been blocklisted
     for section_model in all_section_models:
         for banned_neighbour in section_model.banned_neighbours:
             banned_neighbour_model = models_by_name[banned_neighbour]
@@ -60,9 +61,10 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Status = ", status == cp_model.OPTIMAL)
     print("Solutions found : %i" % solution_printer._solution_count)
     print("Time = ", solver.WallTime(), "seconds")
+    solution_printer.generate_visualisations(total_weeks=total_weeks)
 
 
-AFRICA = "Africa"
+AFRICA = "Southeast Africa"
 AT = "Appalachian Trail"
 CENTRAL_ASIA = "Central Asia"
 CHINA = "China"

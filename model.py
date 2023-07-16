@@ -49,6 +49,11 @@ class SectionConstraint:
         return sorted(week_numbers)
 
 
+@dataclasses.dataclass
+class Solution:
+    section_results: list[SectionResult]
+
+
 def week_to_month_week(week_number):
     if week_number > 52:
         week_number = week_number % 52
