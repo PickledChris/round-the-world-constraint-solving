@@ -1,119 +1,14 @@
 import dataclasses
-import os
-from pathlib import Path
-
-from ortools.constraint_solver.pywrapcp import IntervalVar
-from ortools.sat.python import cp_model
-from ortools.sat.python.cp_model import IntVar
 from datetime import datetime
 
+from ortools.sat.python import cp_model
 
-@dataclasses.dataclass
-class SectionConstraint:
-    name: str
-    best_times: list[int]
-    weeks: int
-    banned_neighbours: set[str]
-
-    def __init__(self, name: str, best_times: list[str], number_of_weeks_to_travel: int, banned_neighbours: set[str]):
-        self.name = name
-        self.best_times = self._parse_times(best_times)
-        self.weeks = number_of_weeks_to_travel
-        self.banned_neighbours = banned_neighbours
-
-    def _parse_times(self, best_times: list[str]) -> list[int]:
-        week_numbers = []
-        for month in best_times:
-            week_ranges = WEEKS_2023_2024[month]
-            for week_range in week_ranges:
-                for r in range(week_range[0], week_range[1]):
-                    week_numbers.append(r)
-
-        return sorted(week_numbers)
-
-
-@dataclasses.dataclass()
-class SectionModel:
-    name: str
-    weeks: int
-    start: IntVar
-    interval: IntervalVar
-    end: IntVar
-    banned_neighbours: set[str]
-
-
-@dataclasses.dataclass()
-class SectionResult:
-    section_name: str
-    start_week: int
-    end_week: int
-
-    def __str__(self):
-        formatted_name = f"{self.section_name} "
-        return f"{self.section_name:<25} {self.end_week - self.start_week:<2} weeks: {week_to_month_week(self.start_week)} to {week_to_month_week(self.end_week)}"
-
-
-def week_to_month_week(week_number):
-    if week_number > 52:
-        week_number = week_number % 52
-        year = "2024"
-    else:
-        year = "2023"
-    if week_number == 0:
-        week_number = 1
-    d = datetime.fromisocalendar(2022, week_number, 1)  # ISO weeks start from Monday.
-    month_name = d.strftime("%B")  # get month's name, i.e. 'January'
-    start_of_the_month = d.replace(day=1)  # get the first day of the month
-    week_of_month = (d - start_of_the_month).days // 7 + 1  # calculate the week of the month
-    return f"{month_name:<9} {year}, week {week_of_month:<2}"
-
-
-WEEKS_2023_2024 = {
-    "November": [(44, 48), (96, 100)],
-    "December": [(48, 53), (100, 104)],
-    "January": [(53, 57)],
-    "February": [(57, 61)],
-    "March": [(61, 65)],
-    "April": [(65, 70)],
-    "May": [(70, 74)],
-    "June": [(74, 78)],
-    "July": [(78, 83)],
-    "August": [(83, 87)],
-    "September": [(87, 92)],
-    "October": [(92, 96)],
-}
-
-# for month, week_ranges in WEEKS_2023_2024.items():
-#     print(month)
-#     for a, b in week_ranges:
-#         print(f"{week_to_month_week(a)} -> {week_to_month_week(b)}")
+from model import SectionModel, SectionConstraint
+from output import SolutionPrinter
 
 
 def count_weeks(sections: list[SectionConstraint]):
     return sum(sec.weeks for sec in sections)
-
-
-class SolutionPrinter(cp_model.CpSolverSolutionCallback):
-    def __init__(self, section_models: list[SectionModel]):
-        cp_model.CpSolverSolutionCallback.__init__(self)
-        self._section_models = section_models
-        self._solution_count = 0
-        total_weeks = sum(m.weeks for m in section_models)
-        self._filename = Path(f"out/solutions-{len(section_models)}-sections-{total_weeks}-weeks.txt")
-        self._filename.unlink(missing_ok=True)
-
-    def OnSolutionCallback(self):
-        self._solution_count += 1
-        section_results = [SectionResult(sm.name, self.Value(sm.start), self.Value(sm.end)) for sm in self._section_models]
-
-        if self._solution_count % 5000 == 0:
-            print(f"Solutions so far: {self._solution_count}")
-
-        with open(self._filename, "a") as out:
-            out.write(f"\nSolution: {self._solution_count}\n")
-
-            for sr in sorted(section_results, key=lambda r: r.start_week):
-                out.write(str(sr) + "\n")
 
 
 def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_week: int):
@@ -136,7 +31,7 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
         # Ensure that all weeks within the range are valid
         for w in range(section.weeks):
             week_index = start + w
-            allowed_values = [model.NewBoolVar('') for _ in section.best_times]
+            allowed_values = [model.NewBoolVar("") for _ in section.best_times]
             for value_var, time in zip(allowed_values, section.best_times):
                 model.Add(week_index == time).OnlyEnforceIf(value_var)
             model.AddBoolOr(allowed_values)
