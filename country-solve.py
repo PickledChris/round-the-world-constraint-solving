@@ -53,16 +53,14 @@ class SectionResult:
         return f"{self.section_name:<25} {self.end_week - self.start_week:<2} weeks: {week_to_month_week(self.start_week)} to {week_to_month_week(self.end_week)}"
 
 
-
-
 def week_to_month_week(week_number):
     if week_number > 52:
         week_number = week_number % 52
     d = datetime.fromisocalendar(2022, week_number, 1)  # ISO weeks start from Monday.
-    month_name = d.strftime('%B')  # get month's name, i.e. 'January'
+    month_name = d.strftime("%B")  # get month's name, i.e. 'January'
     start_of_the_month = d.replace(day=1)  # get the first day of the month
     week_of_month = (d - start_of_the_month).days // 7 + 1  # calculate the week of the month
-    return f'{month_name}-{week_of_month}'
+    return f"{month_name}-{week_of_month}"
 
 
 WEEKS_2023_2024 = {
@@ -144,7 +142,6 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     model.AddCumulative(all_intervals, [section.weeks for section in all_section_models], total_weeks)
 
     for section_model in all_section_models:
-
         for banned_neighbour in section_model.banned_neighbours:
             banned_neighbour_model = models_by_name[banned_neighbour]
             model.Add(section_model.start != banned_neighbour_model.end)
@@ -160,35 +157,47 @@ def solve_trip_scheduling(section_constraints: list[SectionConstraint], start_we
     print("Time = ", solver.WallTime(), "seconds")
 
 
-JAPAN = "Japan"
-NZPI = "New Zealand and PI"
+AFRICA = "Southeast Africa"
 AT = "Appalachian Trail"
 CENTRAL_ASIA = "Central Asia"
-SOUTH_AMERICA = "South America"
-SOUTHEAST_AFRICA = "Southeast Africa"
 CHINA = "China"
+JAPAN = "Japan"
+NEPAL_AND_INDIA = "Nepal and India"
+NZPI = "New Zealand and PI"
 SEA = "Southeast Asia"
-SOUTH_ASIA = "South Asia"
+SOUTH_AMERICA = "South America"
 
-ALL = [JAPAN, NZPI, AT, CENTRAL_ASIA, SOUTH_AMERICA, SOUTHEAST_AFRICA, CHINA, SEA, SOUTH_ASIA]
+ALL = [AFRICA, AT, CENTRAL_ASIA, CHINA, JAPAN, NEPAL_AND_INDIA, NZPI, SEA, SOUTH_AMERICA]
 
 sections = [
     SectionConstraint(AT, ["March", "April", "May", "June", "July", "August"], 5, banned_neighbours=set()),
     SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 8, banned_neighbours=set()),
     SectionConstraint(CHINA, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
     SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
-    SectionConstraint(NZPI, ["January", "February", "March", "April", "September", "October", "November", "December"], 6,
-                      banned_neighbours=set()),
-    SectionConstraint(SOUTH_ASIA, ["January", "February", "March", "April", "May", "November", "December"], 4, banned_neighbours=set()),
-    SectionConstraint(SOUTH_AMERICA, ["January", "February", "March", "April", "May", "September", "October", "November", "December"], 9,
-                      banned_neighbours={SOUTHEAST_AFRICA, SEA, SOUTH_ASIA, CHINA, NZPI}),
-    SectionConstraint(SOUTHEAST_AFRICA,
-                      ["January", "February", "March", "April", "July", "August", "September", "October", "November", "December"], 10,
-                      banned_neighbours=set()),
-    SectionConstraint(SEA,
-                      ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-                       "December"]
-                      , 6, banned_neighbours=set()),
+    SectionConstraint(
+        NZPI, ["January", "February", "March", "April", "September", "October", "November", "December"], 6, banned_neighbours=set()
+    ),
+    SectionConstraint(
+        NEPAL_AND_INDIA, ["January", "February", "March", "April", "May", "November", "December"], 4, banned_neighbours=set()
+    ),
+    SectionConstraint(
+        SOUTH_AMERICA,
+        ["January", "February", "March", "April", "May", "September", "October", "November", "December"],
+        9,
+        banned_neighbours={AFRICA, SEA, NEPAL_AND_INDIA, CHINA, NZPI},
+    ),
+    SectionConstraint(
+        AFRICA,
+        ["January", "February", "March", "April", "July", "August", "September", "October", "November", "December"],
+        10,
+        banned_neighbours=set(),
+    ),
+    SectionConstraint(
+        SEA,
+        ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
+        6,
+        banned_neighbours=set(),
+    ),
 ]
 
 print(f"{len(sections)} sections totalling {count_weeks(sections)} weeks")
