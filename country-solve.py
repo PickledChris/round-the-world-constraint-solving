@@ -170,7 +170,7 @@ SOUTH_AMERICA = "South America"
 ALL = [AFRICA, AT, CENTRAL_ASIA, CHINA, JAPAN, NEPAL_AND_INDIA, NZPI, SEA, SOUTH_AMERICA]
 
 sections = [
-    SectionConstraint(AT, ["March", "April", "May", "June", "July", "August"], 5, banned_neighbours=set()),
+    SectionConstraint(AT, ["March", "April", "May", "June"], 5, banned_neighbours=set()),
     SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 8, banned_neighbours=set()),
     SectionConstraint(CHINA, ["May", "June", "July", "August", "September"], 4, banned_neighbours=set()),
     SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours=set()),
