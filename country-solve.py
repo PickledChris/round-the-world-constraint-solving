@@ -1,8 +1,11 @@
 import dataclasses
+import os
+from pathlib import Path
 
 from ortools.constraint_solver.pywrapcp import IntervalVar
 from ortools.sat.python import cp_model
 from ortools.sat.python.cp_model import IntVar
+from datetime import datetime
 
 
 @dataclasses.dataclass
@@ -50,7 +53,6 @@ class SectionResult:
         return f"{self.section_name:<25} {self.end_week - self.start_week:<2} weeks: {week_to_month_week(self.start_week)} to {week_to_month_week(self.end_week)}"
 
 
-from datetime import datetime
 
 
 def week_to_month_week(week_number):
@@ -88,6 +90,9 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
         cp_model.CpSolverSolutionCallback.__init__(self)
         self._section_models = section_models
         self._solution_count = 0
+        total_weeks = sum(m.weeks for m in section_models)
+        self._filename = Path(f"out/solutions-{len(section_models)}-sections-{total_weeks}-weeks.txt")
+        self._filename.unlink(missing_ok=True)
 
     def OnSolutionCallback(self):
         self._solution_count += 1
@@ -96,7 +101,7 @@ class SolutionPrinter(cp_model.CpSolverSolutionCallback):
         if self._solution_count % 5000 == 0:
             print(f"Solutions so far: {self._solution_count}")
 
-        with open("out/solutions.txt", "a") as out:
+        with open(self._filename, "a") as out:
             out.write(f"\nSolution: {self._solution_count}\n")
 
             for sr in sorted(section_results, key=lambda r: r.start_week):
