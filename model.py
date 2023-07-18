@@ -35,8 +35,8 @@ class SectionConstraint:
     required_neighbours: set[str]
     banned_neighbours: set[str]
 
-    def __init__(self, name: str, best_months: list[str], number_of_weeks_to_travel: int, required_neighbours: set[str]= frozenset([]),
-                 banned_neighbours: set[str]= frozenset([])):
+    def __init__(self, name: str, best_months: list[str], number_of_weeks_to_travel: int, required_neighbours: set[str] = frozenset([]),
+                 banned_neighbours: set[str] = frozenset([])):
         self.name = name
         self.best_months = best_months
         self.best_times = self._parse_times(best_months)
@@ -47,10 +47,18 @@ class SectionConstraint:
     def _parse_times(self, best_times: list[str]) -> list[int]:
         week_numbers = []
         for month in best_times:
-            week_ranges = WEEKS_2023_2024[month]
-            for week_range in week_ranges:
-                for r in range(week_range[0], week_range[1]):
-                    week_numbers.append(r)
+            month_name = month.split(" ")[0]
+            week_ranges = WEEKS_2023_2024[month_name]
+
+            if "0" in month:
+                selected_ranges = [week_ranges[0]]
+            elif "1" in month:
+                selected_ranges = [week_ranges[1]]
+            else:
+                selected_ranges = week_ranges
+
+            for start, end in selected_ranges:
+                week_numbers.extend(range(start, end))
 
         return sorted(week_numbers)
 
