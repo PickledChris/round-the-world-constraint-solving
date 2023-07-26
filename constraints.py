@@ -12,37 +12,41 @@ PI = "Pacific Islands"
 SEA = "Southeast Asia"
 SOUTH_AMERICA = "South America"
 
-ALL = [AFRICA, AT, CENTRAL_ASIA, CHINA, JAPAN, NEPAL_AND_INDIA, NZ, PI, SEA, SOUTH_AMERICA]
+ALL = [AFRICA, AT, CENTRAL_ASIA, CHINA, JAPAN, NEPAL_AND_INDIA, NZ, SEA, SOUTH_AMERICA]
 
 sections = [
-    SectionConstraint(AT, ["March", "April", "May", "June"], 5),
-    SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 8),
+    SectionConstraint(AT, ["March", "April", "May", "June"], 5, required_neighbours={JAPAN}),
+    SectionConstraint(CENTRAL_ASIA, ["May", "June", "July", "August", "September"], 10, required_neighbours={CHINA}),
     SectionConstraint(CHINA, ["May", "June", "July", "August", "September"], 4),
-    SectionConstraint(JAPAN, ["April", "May", "June", "July", "August", "September", "October"], 4, banned_neighbours={AFRICA}),
-    SectionConstraint(NZ, ["January", "February", "March", "April", "October", "November", "December"], 4,
-                      banned_neighbours={SOUTH_AMERICA}),
-    SectionConstraint(PI, ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
-                           "December"], 2, required_neighbours={NZ}, banned_neighbours={AFRICA, AT, CENTRAL_ASIA, CHINA, NEPAL_AND_INDIA, SOUTH_AMERICA}),
     SectionConstraint(
-        NEPAL_AND_INDIA, ["January", "February", "March", "April", "October", "November", "December"], 4
+        JAPAN,
+        ["April", "May", "June", "July", "August", "September", "October"],
+        4,
+        required_neighbours={CHINA},
+        banned_neighbours={AFRICA},
     ),
+    SectionConstraint(
+        NZ, ["January 0", "February", "March", "April", "October", "November 0", "December 0"], 7, banned_neighbours={AFRICA}
+    ),
+    # SectionConstraint(PI, ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November",
+    #                        "December"], 2, required_neighbours={NZ}, banned_neighbours={AFRICA, AT, CENTRAL_ASIA, CHINA, NEPAL_AND_INDIA, SOUTH_AMERICA}),
+    SectionConstraint(NEPAL_AND_INDIA, ["January", "February", "March", "April", "October", "November", "December"], 6),
     SectionConstraint(
         SOUTH_AMERICA,
         ["January", "February", "March", "April", "May", "September", "October", "November", "December"],
         9,
-        banned_neighbours={AFRICA, SEA, NEPAL_AND_INDIA, CHINA, NZ, PI},
+        required_neighbours={AFRICA},
+        banned_neighbours={NZ, NEPAL_AND_INDIA},
     ),
     SectionConstraint(
         AFRICA,
         ["January", "February", "March", "April", "July", "August", "September", "October", "November", "December"],
-        10
-        ,
+        9,
     ),
     SectionConstraint(
         SEA,
         ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"],
-        6
-        ,
+        5,
     ),
 ]
 
